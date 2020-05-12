@@ -50,6 +50,18 @@ defmodule DataFetching.Application do
       %{
         id: RequestLegacy,
         start: {Request, :start_link, ["http://localhost:4000/legacy_sensors"]}
+      },
+      %{
+        id: Publisher,
+        start: {Publisher, :start_link, [2002]}
+      },
+      %{
+        id: PublisherIot,
+        start: {PublisherIot, :start_link, [2003]}
+      },
+      %{
+        id: PublisherLegacy,
+        start: {PublisherLegacy, :start_link, [2004]}
       }
     ]
 
@@ -58,6 +70,5 @@ defmodule DataFetching.Application do
 
     receive do
     end
-    
   end
 end

@@ -14,7 +14,8 @@ defmodule WorkerIot do
   def handle_cast({:compute, msg}, _states) do
     data = json_parse(msg)
     data = calc_avg(data)
-    # here goes publisher
+
+    PublisherIot.publish(PublisherIot, data)
     {:noreply, []}
   end
 

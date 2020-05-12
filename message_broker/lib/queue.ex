@@ -2,32 +2,49 @@ defmodule Queue do
   use GenServer
 
   def start_link() do
-    GenServer.start_link(__MODULE__, [], name: __MODULE_)
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def add_data(queue, data) do
-    GenServer.cast(queue, {:add, data})
+  def add(packet) do
+    GenServer.cast(__MODULE__, {:add_message, package})
   end
 
-  def get_messages(topic) do
-    GenServer.call(__MODULE__, {:get_messages, topic})
+  def get(topic) do
+    GenServer.call(__MODULE__, {:get_message, topic})
   end
 
-  @impl true
-  def handle_cast({:add, recieved_data}, state) do
-    topic = recieved_data["topic"]
-    data = Map.get(state, topic, [])
-    next_state = Map.put(state, topic, current_data ++ [recieved_data])
+  def init(_) do
+    registry = Map.new()
 
-    {:noreply, next_state}
+    {:ok, registry}
   end
 
-  @impl true 
-  def handle_call({:get_messages, topic}, _from, state) do
-    {
-      :reply,
-      Map.get(state, topic)
-      Map.put(state, topic)
-    }
+  def handle_cast({:add_message, package}, state) do
+    topic = package["topic"]
+    message = Map.delete(package, "topic")
+
+    if Map.has_key?(state, topic) do
+      messages = Map.get(state, topic)
+      messages = messages ++ [message]
+      new_state = Map.put(state, topic, messages)
+
+      {:noreply, new_state}
+    else
+      registry_new_state = Map.put(state, topic, [message])
+
+      {:noreply, new_state}
+    end
   end
+
+  def handle_call({:get_message, topic}, _from, state) do
+    if state == %{} do
+      {:reply, [], state}
+    else
+      messages = Map.get(state, topic)
+      new_state = Map.put(state, topic, [])
+
+      {:reply, messages, new_state}
+    end
+  end
+
 end
