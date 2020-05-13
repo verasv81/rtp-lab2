@@ -10,7 +10,7 @@ defmodule RequestLegacy do
     receive do
       event ->
         DataFlowLegacy.send_event()
-        Distributor.send_event_iot(event)
+        Distributor.send_event_legacy_sensors(event)
     end
     getData()
   end

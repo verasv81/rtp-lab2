@@ -52,7 +52,7 @@ defmodule Distributor do
   @impl true
   def handle_cast({:distributor_sensors, msg}, states) do
     counter = states
-    recommend_max_workers = GenServer.call(DataFlow, :recommend_max_workers)
+    recommend_max_workers = GenServer.call(DataFlowSensors, :recommend_max_workers)
     pids_list = DynSupervisor.pid_children()
 
     if DynSupervisor.count_children()[:active] < recommend_max_workers do

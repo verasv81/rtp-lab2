@@ -6,7 +6,7 @@ defmodule DataFlowIot do
   end
 
   def send_event() do
-    GenServer.cast(DataFlow, :send_flow)
+    GenServer.cast(DataFlowIot, :send_flow)
   end
 
 

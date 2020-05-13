@@ -6,7 +6,7 @@ defmodule DataFlowLegacy do
   end
 
   def send_event() do
-    GenServer.cast(DataFlow, :send_flow)
+    GenServer.cast(DataFlowLegacy, :send_flow)
   end
 
   @impl true

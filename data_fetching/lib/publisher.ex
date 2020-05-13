@@ -14,7 +14,7 @@ defmodule Publisher do
       {:error, _reason} ->
         Process.exit(self(), :normal)
     end
-    IO.puts("Publisher init")
+    
     {:ok, socket}
   end
 

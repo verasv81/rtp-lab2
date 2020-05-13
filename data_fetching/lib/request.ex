@@ -10,7 +10,7 @@ defmodule Request do
     receive do
       event ->
         DataFlowSensors.send_event()
-        Distributor.send_event_iot(event)
+        Distributor.send_event_sensor(event)
     end
     getData()
   end

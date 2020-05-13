@@ -4,7 +4,7 @@ defmodule DataFetching.Application do
   def start(_type, _args) do
       children = [
       %{
-        id: DataFlow,
+        id: DataFlowSensors,
         start: {DataFlowSensors, :start_link, [""]}
       },
       %{
