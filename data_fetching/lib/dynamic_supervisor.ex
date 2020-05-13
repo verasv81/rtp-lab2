@@ -12,8 +12,8 @@ defmodule DynSupervisor do
 
   def create_worker(msg) do
     child_spec = %{
-      id: ForecastWorker,
-      start: {ForecastWorker, :start_link, [msg]},
+      id: Worker,
+      start: {Worker, :start_link, [msg]},
       restart: :temporary,
       shutdown: :brutal_kill
     }

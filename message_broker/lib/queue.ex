@@ -5,7 +5,7 @@ defmodule Queue do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def add(packet) do
+  def add(package) do
     GenServer.cast(__MODULE__, {:add_message, package})
   end
 
@@ -30,7 +30,7 @@ defmodule Queue do
 
       {:noreply, new_state}
     else
-      registry_new_state = Map.put(state, topic, [message])
+      new_state = Map.put(state, topic, [message])
 
       {:noreply, new_state}
     end
