@@ -6,20 +6,20 @@ defmodule Queue do
   end
 
   def add(package) do
-    GenServer.cast(__MODULE__, {:add_message, package})
+    GenServer.cast(__MODULE__, {:push, package})
   end
 
   def get(topic) do
-    GenServer.call(__MODULE__, {:get_message, topic})
+    GenServer.call(__MODULE__, {:pop, topic})
   end
 
   def init(_) do
-    registry = Map.new()
+    queue = Map.new()
 
-    {:ok, registry}
+    {:ok, queue}
   end
 
-  def handle_cast({:add_message, package}, state) do
+  def handle_cast({:push, package}, state) do
     topic = package["topic"]
     message = Map.delete(package, "topic")
 
@@ -36,7 +36,7 @@ defmodule Queue do
     end
   end
 
-  def handle_call({:get_message, topic}, _from, state) do
+  def handle_call({:pop, topic}, _from, state) do
     if state == %{} do
       {:reply, [], state}
     else
