@@ -57,7 +57,7 @@ defmodule DataFetching.Application do
       }
     ]
 
-    opts = [strategy: :one_for_one, name: MainSupervisor]
+    opts = [strategy: :one_for_one]
     Supervisor.start_link(children, opts)
     IO.puts("Data fetching started!")
     receive do

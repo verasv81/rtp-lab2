@@ -48,7 +48,7 @@ defmodule SubscriberServer do
     subscriber = {elem(data, 0), elem(data, 1)}
     topic = package["topic"]
     Map.delete(package, "topic")
-
+    
     topics = get_topics(topic)
 
     subscriber_new_state =  Enum.reduce(topics, subscriber_state, fn topic, acc ->
@@ -72,24 +72,30 @@ defmodule SubscriberServer do
 
   def handle_cast({:broadcast_messages, socket}, subscriber_state) do
     topics = Map.keys(subscriber_state)
+
     Enum.each(topics, fn topic ->
       hosts = Map.get(subscriber_state, topic)
-      messages = Queue.get(topic)
+      messages = Queue.get(topics)
+
       if messages != nil do
-        Enum.each(messages, fn message ->
-          message = Map.put(message, "topic", topic)
-          encoded_message = Poison.encode!(message)
-          Enum.each(hosts, fn host ->
-            address = elem(host, 0)
-            port = elem(host, 1)
-            case :gen_udp.send(socket, address, port, encoded_message) do
-              :ok ->
-                Logger.info("Message sent to #{port} topic: #{topic}")
-              {:error, reason} ->
-                Logger.info("Could not send packet! Reasaon: #{reason}")
-            end
+        if length(messages) != 0 do
+          IO.inspect(messages)
+          Enum.each(messages, fn message ->
+            message = Map.put(message, "topic", topic)
+            encoded_message = Poison.encode!(message)
+            Enum.each(hosts, fn host ->
+            IO.inspect(host)
+              address = elem(host, 0)
+              port = elem(host, 1)
+              case :gen_udp.send(socket, address, port, encoded_message) do
+                :ok ->
+                  Logger.info("Message sent to #{port} topic: #{topic}")
+                {:error, reason} ->
+                  Logger.info("Could not send packet! Reasaon: #{reason}")
+              end
+            end)
           end)
-        end)
+        end
       else
         Logger.info("Error! Not such topic #{topic}")
       end
@@ -104,6 +110,7 @@ defmodule SubscriberServer do
       else
         [topic]
       end
+
       topics
   end
 

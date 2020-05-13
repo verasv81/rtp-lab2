@@ -5,12 +5,12 @@ defmodule Queue do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def add(package) do
+  def push(package) do
     GenServer.cast(__MODULE__, {:push, package})
   end
 
   def get(topic) do
-    GenServer.call(__MODULE__, {:pop, topic})
+    GenServer.call(__MODULE__, {:get, topic})
   end
 
   def init(_) do
@@ -36,13 +36,13 @@ defmodule Queue do
     end
   end
 
-  def handle_call({:pop, topic}, _from, state) do
+  def handle_call({:get, topic}, _from, state) do
     if state == %{} do
       {:reply, [], state}
     else
       messages = Map.get(state, topic)
       new_state = Map.put(state, topic, [])
-
+      
       {:reply, messages, new_state}
     end
   end
