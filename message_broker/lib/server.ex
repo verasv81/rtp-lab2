@@ -19,14 +19,12 @@ defmodule Server do
       {:ok, data} ->
         package = elem(data, 2)
         decoded_package = Poison.decode!(package)
+        IO.inspect(decoded_package)
+
         type = decoded_package["type"]
         
         if type == nil do
           Queue.push(decoded_package)
-        else
-          case type do
-            "subscribe" -> SubscriberServer.subscribe(data, decoded_package)
-          end
         end
     end
     recieve_messages(socket)

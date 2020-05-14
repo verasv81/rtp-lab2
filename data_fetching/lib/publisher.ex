@@ -7,9 +7,8 @@ defmodule Publisher do
 
   @impl true
   def init(port) do
-    opts = [:binary, active: false]
     
-    socket = case :gen_udp.open(port, opts) do
+    socket = case :gen_udp.open(port) do
       {:ok, socket} -> socket
       {:error, _reason} ->
         Process.exit(self(), :normal)

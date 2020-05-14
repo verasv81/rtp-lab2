@@ -7,7 +7,7 @@ defmodule PublisherIot do
 
   @impl true
   def init(port) do
-    opts = [:binary, active: false]
+    opts = [:binary, active: true]
     
     socket = case :gen_udp.open(port, opts) do
       {:ok, socket} -> socket

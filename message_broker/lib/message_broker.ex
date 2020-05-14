@@ -4,10 +4,6 @@ defmodule MessageBroker.Application do
   def start(_, _) do
     children = [
       %{
-        id: SubscriberServer,
-        start: {SubscriberServer, :start_link, []}
-      },
-      %{
         id: Queue,
         start: {Queue, :start_link, []}
       },
