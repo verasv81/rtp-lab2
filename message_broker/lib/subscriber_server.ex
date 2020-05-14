@@ -10,10 +10,6 @@ defmodule SubscriberServer do
     GenServer.cast(__MODULE__, {:subscribe, data, package})
   end
 
-  def unsubscribe(data, package) do
-    GenServer.cast(__MODULE__, {:unsubscribe, data, package})
-  end
-
   def broadcast_messages(socket) do
     GenServer.cast(__MODULE__, {:broadcast_messages, socket})
    end
@@ -44,31 +40,6 @@ defmodule SubscriberServer do
     {:noreply, subscriber_new_state}
   end
 
-  def handle_cast({:unsubscribe, data, package}, subscriber_state) do
-    subscriber = {elem(data, 0), elem(data, 1)}
-    topic = package["topic"]
-    Map.delete(package, "topic")
-    
-    topics = get_topics(topic)
-
-    subscriber_new_state =  Enum.reduce(topics, subscriber_state, fn topic, acc ->
-      if Map.has_key?(subscriber_state, topic) do
-        subscribers = Map.get(subscriber_state, topic)
-        if Enum.member?(subscribers, subscriber) do
-          subscribers = List.delete(subscribers, subscriber)
-          Map.put(acc, topic, subscribers)
-        else
-          Logger.info("Error! Not subscribed to topic #{topic}")
-          subscriber_state
-        end
-      else
-        Logger.info("Error! Not such topic #{topic}")
-        subscriber_state
-      end
-    end)
-
-      {:noreply, subscriber_new_state}
-  end
 
   def handle_cast({:broadcast_messages, socket}, subscriber_state) do
     topics = Map.keys(subscriber_state)
@@ -78,8 +49,6 @@ defmodule SubscriberServer do
       messages = Queue.get(topics)
 
       if messages != nil do
-        if length(messages) != 0 do
-          IO.inspect(messages)
           Enum.each(messages, fn message ->
             message = Map.put(message, "topic", topic)
             encoded_message = Poison.encode!(message)
@@ -95,7 +64,6 @@ defmodule SubscriberServer do
               end
             end)
           end)
-        end
       else
         Logger.info("Error! Not such topic #{topic}")
       end

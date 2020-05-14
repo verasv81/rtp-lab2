@@ -21,16 +21,15 @@ defmodule Queue do
 
   def handle_cast({:push, package}, state) do
     topic = package["topic"]
-    message = Map.delete(package, "topic")
-
-    if Map.has_key?(state, topic) do
-      messages = Map.get(state, topic)
-      messages = messages ++ [message]
-      new_state = Map.put(state, topic, messages)
+    topic_atom = String.to_atom(topic)
+    if Map.has_key?(state, topic_atom) do
+      messages = Map.get(state, topic_atom, [])
+      messages = messages ++ [package]
+      new_state = Map.put(state, topic_atom, messages)
 
       {:noreply, new_state}
     else
-      new_state = Map.put(state, topic, [message])
+      new_state = Map.put(state, topic_atom, [package])
 
       {:noreply, new_state}
     end
@@ -40,10 +39,9 @@ defmodule Queue do
     if state == %{} do
       {:reply, [], state}
     else
-      messages = Map.get(state, topic)
-      new_state = Map.put(state, topic, [])
+      messages = Map.take(state, topic)
       
-      {:reply, messages, new_state}
+      {:reply, messages, state}
     end
   end
 

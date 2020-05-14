@@ -26,7 +26,6 @@ defmodule Server do
         else
           case type do
             "subscribe" -> SubscriberServer.subscribe(data, decoded_package)
-            "unsubscribe" -> SubscriberServer.unsubscribe(data, decoded_package)
           end
         end
     end
