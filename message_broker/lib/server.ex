@@ -5,7 +5,6 @@ defmodule Server do
     opts = [:binary, active: false]
     server_pid = case :gen_udp.open(port, opts) do
       {:ok, socket} ->
-        Sender.start_link(socket)
         spawn_link(__MODULE__, :recieve_messages, [socket])
       {:error, reason} ->
         Logger.info("Could not start server! Reason: #{reason}")
