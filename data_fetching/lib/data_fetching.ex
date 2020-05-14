@@ -4,27 +4,19 @@ defmodule DataFetching.Application do
   def start(_type, _args) do
       children = [
       %{
-        id: DataFlow,
-        start: {DataFlow, :start_link, [""]}
+        id: DataFlowSensors,
+        start: {DataFlowSensors, :start_link, [""]}
       },
       %{
         id: DataFlowIot,
-        start: {DataFlow, :start_link, [""]}
+        start: {DataFlowIot, :start_link, [""]}
       },
       %{
         id: DataFlowLegacy,
-        start: {DataFlow, :start_link, [""]}
+        start: {DataFlowLegacy, :start_link, [""]}
       },
       %{
         id: Distributor,
-        start: {Distributor, :start_link, [""]}
-      },
-      %{
-        id: DistributorIot,
-        start: {Distributor, :start_link, [""]}
-      },
-      %{
-        id: DistributorLegacy,
         start: {Distributor, :start_link, [""]}
       },
       {
@@ -50,14 +42,25 @@ defmodule DataFetching.Application do
       %{
         id: RequestLegacy,
         start: {Request, :start_link, ["http://localhost:4000/legacy_sensors"]}
+      },
+      %{
+        id: Publisher,
+        start: {Publisher, :start_link, [2002]}
+      },
+      %{
+        id: PublisherIot,
+        start: {PublisherIot, :start_link, [2003]}
+      },
+      %{
+        id: PublisherLegacy,
+        start: {PublisherLegacy, :start_link, [2004]}
       }
     ]
 
-    opts = [strategy: :one_for_one, name: MainSupervisor]
+    opts = [strategy: :one_for_one]
     Supervisor.start_link(children, opts)
-
+    IO.puts("Data fetching started!")
     receive do
     end
-    
   end
 end

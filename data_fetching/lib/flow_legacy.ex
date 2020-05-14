@@ -5,6 +5,10 @@ defmodule DataFlowLegacy do
     GenServer.start_link(__MODULE__, msg, name: __MODULE__)
   end
 
+  def send_event() do
+    GenServer.cast(DataFlowLegacy, :send_flow)
+  end
+
   @impl true
   def init(_msg) do
     counter = 0

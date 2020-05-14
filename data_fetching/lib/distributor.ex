@@ -11,42 +11,106 @@ defmodule Distributor do
     {:ok, counter}
   end
 
-  @impl true
-  def handle_cast({:distributor, msg}, states) do
-    counter = states
-    recommend_max_workers = GenServer.call(DataFlow, :recommend_max_workers)
-    pids_list = DynSupervisor.pid_children()
+  def send_event_iot(event) do
+    GenServer.cast(Distributor, {:distributor_iot, event})
+  end
 
-    if DynSupervisor.count_children()[:active] < recommend_max_workers do
-      create_worker(msg)
+  def send_event_sensor(event) do
+    GenServer.cast(Distributor, {:distributor_sensors, event})
+  end
+
+  def send_event_legacy_sensors(event) do
+    GenServer.cast(Distributor, {:distributor_legacy_sensors, event})
+  end
+
+  @impl true
+  def handle_cast({:distributor_iot, msg}, states) do
+    counter = states
+    recommend_max_workers = GenServer.call(DataFlowIot, :recommend_max_workers)
+    pids_list = DynSupervisorIot.pid_children()
+
+    if DynSupervisorIot.count_children()[:active] < recommend_max_workers do
+      create_worker(DynSupervisorIot, msg)
     else
-      if DynSupervisor.count_children()[:active] > recommend_max_workers do
+      if DynSupervisorIot.count_children()[:active] > recommend_max_workers do
         [head | _tail] = pids_list
-        remove_worker(head)
+        remove_worker(DynSupervisorIot, head)
       end
     end
 
     if counter < length(pids_list) do
       counter = counter + 1
-      compute_forecast(pids_list, counter, msg)
+      compute_forecast(DynSupervisorIot, pids_list, counter, msg)
       {:noreply, counter}
     else
       counter = 0
-      compute_forecast(pids_list, counter, msg)
+      compute_forecast(DynSupervisorIot, pids_list, counter, msg)
       {:noreply, counter}
     end
   end
 
-  defp compute_forecast(pids_list, counter, msg) do
-    DynSupervisor.calculate_and_send_forecast(Enum.at(pids_list, counter), msg)
+  @impl true
+  def handle_cast({:distributor_sensors, msg}, states) do
+    counter = states
+    recommend_max_workers = GenServer.call(DataFlowSensors, :recommend_max_workers)
+    pids_list = DynSupervisor.pid_children()
+
+    if DynSupervisor.count_children()[:active] < recommend_max_workers do
+      create_worker(DynSupervisor, msg)
+    else
+      if DynSupervisor.count_children()[:active] > recommend_max_workers do
+        [head | _tail] = pids_list
+        remove_worker(DynSupervisor, head)
+      end
+    end
+
+    if counter < length(pids_list) do
+      counter = counter + 1
+      compute_forecast(DynSupervisor, pids_list, counter, msg)
+      {:noreply, counter}
+    else
+      counter = 0
+      compute_forecast(DynSupervisor, pids_list, counter, msg)
+      {:noreply, counter}
+    end
   end
 
-  defp create_worker(msg) do
-    DynSupervisor.create_worker(msg)
+  @impl true
+  def handle_cast({:distributor_legacy_sensors, msg}, states) do
+    counter = states
+    recommend_max_workers = GenServer.call(DataFlowLegacy, :recommend_max_workers)
+    pids_list = DynSupervisorLegacy.pid_children()
+
+    if DynSupervisorLegacy.count_children()[:active] < recommend_max_workers do
+      create_worker(DynSupervisorLegacy, msg)
+    else
+      if DynSupervisorLegacy.count_children()[:active] > recommend_max_workers do
+        [head | _tail] = pids_list
+        remove_worker(DynSupervisorLegacy, head)
+      end
+    end
+
+    if counter < length(pids_list) do
+      counter = counter + 1
+      compute_forecast(DynSupervisorLegacy, pids_list, counter, msg)
+      {:noreply, counter}
+    else
+      counter = 0
+      compute_forecast(DynSupervisorLegacy, pids_list, counter, msg)
+      {:noreply, counter}
+    end
   end
 
-  defp remove_worker(pid) do
-    DynSupervisor.remove_worker(pid)
+  defp compute_forecast(supevisor, pids_list, counter, msg) do
+    supevisor.calculate_and_send_forecast(Enum.at(pids_list, counter), msg)
+  end
+
+  defp create_worker(supevisor, msg) do
+    supevisor.create_worker(msg)
+  end
+
+  defp remove_worker(supevisor, pid) do
+    supevisor.remove_worker(pid)
   end
 
   def child_spec(opts) do

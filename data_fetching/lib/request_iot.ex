@@ -1,28 +1,29 @@
-defmodule Request do
+defmodule RequestIot do
   def start_link(url) do
-    {:ok, _pid} = EventsourceEx.new(url, stream_to: self())
-
-    recv()
+    request_pid = spawn_link(__MODULE__, :getData, [])
+    {:ok, eventsource_pid} = EventsourceEx.new(url, stream_to: request_pid)
+    spawn(__MODULE__, :check_eventsource, [eventsource_pid, url, request_pid])
+    {:ok, request_pid}
   end
 
-  def recv do
+  def getData() do
     receive do
-      msg -> msg_operations(msg)
+      event ->
+        DataFlowIot.send_event()
+        Distributor.send_event_iot(event)
     end
+    getData()
   end
 
-  def msg_operations(msg) do
-    GenServer.cast(DataFlowIot, :send_flow)
-    GenServer.cast(DistributorIot, {:distributor, msg})
-    recv()
-  end
+  def check_eventsource(eventsource_pid, url, request_pid) do
+    Process.monitor(eventsource_pid)
 
-  def child_spec(opts) do
-    %{
-      id: __MODULE__,
-      start: {__MODULE__, :start_link, [opts]},
-      type: :worker,
-      restart: :permanent
-    }
+    {:ok, new_eventsource_pid} =
+      receive do
+        _msg ->
+          EventsourceEx.new(url, stream_to: request_pid)
+      end
+
+    check_eventsource(new_eventsource_pid, url, request_pid)
   end
 end
